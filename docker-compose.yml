@@ -1,0 +1,127 @@
+
+networks:
+  mi_red:
+    driver: bridge
+
+services:
+  api-gateway:
+    build: ./Api_Gateway
+    container_name: api-gateway
+    ports:
+      - "8000:8000"
+    networks:
+      - mi_red
+    depends_on:
+      - profile-service
+      - feed-service
+      - follow-service
+      - notification-service
+
+  profile-service:
+    build: ./Profile_Service
+    container_name: profile-service
+    ports:
+      - "8001:8000"
+    networks:
+      - mi_red
+    depends_on:
+      - db_profile
+    environment:
+      - POSTGRES_DB=profile_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=db_profile
+      - POSTGRES_PORT=5432
+
+  feed-service:
+    build: ./Feed_Service
+    container_name: feed-service
+    ports:
+      - "8002:8000"
+    networks:
+      - mi_red
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017/feed_db
+
+  follow-service:
+    build: ./Follow_Service
+    container_name: follow-service
+    ports:
+      - "8003:8000"
+    networks:
+      - mi_red
+    depends_on:
+      - db_follow
+    environment:
+      - POSTGRES_DB=follow_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=db_follow
+      - POSTGRES_PORT=5432
+
+  notification-service:
+    build: ./Notification_Service
+    container_name: notification-service
+    ports:
+      - "8004:8000"
+    networks:
+      - mi_red
+    depends_on:
+      - db_notification
+    environment:
+      - POSTGRES_DB=notification_db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOST=db_notification
+      - POSTGRES_PORT=5432
+
+  # Bases de datos y otros servicios:
+  db_profile:
+    image: postgres:13
+    container_name: db_profile
+    environment:
+      POSTGRES_DB: profile_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    networks:
+      - mi_red
+
+  db_follow:
+    image: postgres:13
+    container_name: db_follow
+    environment:
+      POSTGRES_DB: follow_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    networks:
+      - mi_red
+
+  db_notification:
+    image: postgres:13
+    container_name: db_notification
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432"
+    networks:
+      - mi_red
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - mi_red
+    environment:
+      MONGO_INITDB_DATABASE: feed_db
+
+ 
